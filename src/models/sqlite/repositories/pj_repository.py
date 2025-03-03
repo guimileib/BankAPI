@@ -3,6 +3,7 @@ from src.models.sqlite.entities.pessoa_juridica import PessoaJuridica
 from src.models.sqlite.interfaces.pj_repository_interface import PJRepositoryInterface  
 
 class PJRepository(PJRepositoryInterface):
+    
     def __init__(self, db_connection) -> None:
         self.__db_connection = db_connection # Injeção de dependencia do banco de dados
         
@@ -24,6 +25,7 @@ class PJRepository(PJRepositoryInterface):
             except Exception as exception:
                 database.session.rollback() # desfaz operação
                 raise exception
+            
     def get_pj(self, pj_id:int) -> PessoaJuridica:
         with self.__db_connection as database:
             try:

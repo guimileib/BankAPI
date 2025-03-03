@@ -8,10 +8,11 @@ class PessoaFisicaTable(Base):
     idade = Column(BIGINT, nullable=False)
     nome_completo = Column(String, nullable=False)
     celular = Column(String, nullable=False)
+    email = Column(String, nullable=False)
     categoria = Column(String, nullable=False)
     saldo = Column(REAL, nullable=False)
     
     # Representação de como o objeto será exibido
     def __repr__(self):
-        return f'PessoaFisica [nome_completo={self.nome_completo}, idade={self.idade}, celular={self.celular}, categoria={self.categoria}, saldo={self.saldo}]'
+        return f'PessoaFisica [nome_completo={self.nome_completo}, idade={self.idade}, celular={self.celular}, email={self.email},categoria={self.categoria}, saldo={self.saldo}]'
     
