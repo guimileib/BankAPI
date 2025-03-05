@@ -1,3 +1,4 @@
+from typing import Dict, List
 from sqlalchemy.orm.exc import NoResultFound
 from src.models.sqlite.entities.pessoa_juridica import PessoaJuridica
 from src.models.sqlite.interfaces.pj_repository_interface import PJRepositoryInterface  
@@ -7,7 +8,7 @@ class PJRepository(PJRepositoryInterface):
     def __init__(self, db_connection) -> None:
         self.__db_connection = db_connection # Injeção de dependencia do banco de dados
         
-    def create_pj(self, nome_fantasia: str, faturamento: float, idade: int, celular: str, 
+    def create(self, nome_fantasia: str, faturamento: float, idade: int, celular: str, 
                   email_corporativo: str, categoria: str, saldo: float) -> None: # é um insert não retorna nada
         with self.__db_conncetion as database:
             try:
@@ -26,7 +27,7 @@ class PJRepository(PJRepositoryInterface):
                 database.session.rollback() # desfaz operação
                 raise exception
             
-    def get_pj(self, pj_id:int) -> PessoaJuridica:
+    def get(self, pj_id:int) -> PessoaJuridica:
         with self.__db_connection as database:
             try:
                 pj = (
@@ -38,4 +39,15 @@ class PJRepository(PJRepositoryInterface):
                 return pj
             except NoResultFound:
                 return None
-        
+            
+    def sacar(self, pf_id: int, valor: float) -> bool:
+        saldo_atual = self.__db.fetch_one("SELECT saldo FROM pessoas_juridicas WHERE id = ?", (pf_id,))
+        if saldo_atual and saldo_atual[0] >= valor:
+            novo_saldo = saldo_atual[0] - valor
+            self.__db.execute("UPDATE pessoas_juridicas SET saldo = ? WHERE id = ?", (novo_saldo, pf_id))
+            return True
+        return False
+    
+    def extrato(self, pf_id: int) -> List[Dict]:
+        query = "SELECT tipo, valor, data FROM transacoes WHERE id_empresa = ? ORDER BY data DESC"
+        return self.__db.fetch_all(query, (pf_id,))
