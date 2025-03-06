@@ -50,5 +50,5 @@ class PFRepository(PFRepositoryInterface):
         return False
     
     def extrato(self, pj_id: int) -> List[Dict]:
-        query = "SELECT tipo, valor, data FROM transacoes WHERE id_cliente = ? ORDER BY data DESC"
+        query = "SELECT tipo, valor, data FROM transacoes WHERE id = ? ORDER BY data DESC"
         return self.__db.fetch_all(query, (pj_id,))
