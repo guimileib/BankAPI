@@ -49,5 +49,5 @@ class PJRepository(PJRepositoryInterface):
         return False
     
     def extrato(self, pf_id: int) -> List[Dict]:
-        query = "SELECT tipo, valor, data FROM transacoes WHERE id_empresa = ? ORDER BY data DESC"
+        query = "SELECT tipo, valor, data FROM transacoes WHERE id = ? ORDER BY data DESC"
         return self.__db.fetch_all(query, (pf_id,))
