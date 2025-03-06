@@ -8,17 +8,18 @@ class PFRepository(PFRepositoryInterface):
     def __init__(self, db_connection) -> None:
         self.__db_connection = db_connection
     
-    def create(self, nome: str, idade: int, celular: str, email: str, 
-                  categoria: str, saldo: float) -> None: # não vou retornar nada porque é uma operação de escrita
+    def create(self, nome_completo: str, idade: int, celular: str, email: str, 
+                  categoria: str, saldo: float, renda_mensal: float) -> None: # não vou retornar nada porque é uma operação de escrita
         with self.__db_connection as database:
             try: 
                 pf_data = PessoaFisicaTable(
-                    nome=nome,
+                    nome_completo=nome_completo,
                     idade=idade,
                     celular=celular,
                     email=email,
                     categoria=categoria,
-                    saldo=saldo
+                    saldo=saldo,
+                    renda_mensal=renda_mensal
                 )
                 database.session.add(pf_data)
                 database.session.commit()
@@ -41,7 +42,7 @@ class PFRepository(PFRepositoryInterface):
     
     def sacar(self, pj_id: int, valor: float) -> bool:
         # Verifica saldo
-        saldo_atual = self.__db.fetch_one("SELECT saldo FROM pessoas_fisicas WHERE id = ?", (pj_id,))
+        saldo_atual = self.__db_connection.fetch_one("SELECT saldo FROM pessoas_fisicas WHERE id = ?", (pj_id,))
         if saldo_atual and saldo_atual[0] >= valor:
             novo_saldo = saldo_atual[0] - valor
             self.__db.execute("UPDATE pessoas_fisicas SET saldo = ? WHERE id = ?", (novo_saldo, pj_id))

@@ -11,6 +11,7 @@ class PessoaFisicaTable(Base):
     email = Column(String, nullable=False)
     categoria = Column(String, nullable=False)
     saldo = Column(REAL, nullable=False)
+    renda_mensal = Column(REAL, nullable=False)
     
     def sacar(self, valor):
         limite_saque = 1000  # Limite menor para Pessoa Física
@@ -27,5 +28,5 @@ class PessoaFisicaTable(Base):
     
     # Representação de como o objeto será exibido
     def __repr__(self):
-        return f'PessoaFisica [nome_completo={self.nome_completo}, idade={self.idade}, celular={self.celular}, email={self.email},categoria={self.categoria}, saldo={self.saldo}]'
+        return f'PessoaFisica [nome_completo={self.nome_completo}, idade={self.idade}, celular={self.celular}, email={self.email},categoria={self.categoria}, saldo={self.saldo}, renda_mensal={self.renda_mensal}]'
     

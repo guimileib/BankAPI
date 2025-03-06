@@ -41,7 +41,7 @@ class PJRepository(PJRepositoryInterface):
                 return None
             
     def sacar(self, pf_id: int, valor: float) -> bool:
-        saldo_atual = self.__db.fetch_one("SELECT saldo FROM pessoas_juridicas WHERE id = ?", (pf_id,))
+        saldo_atual = self.__db_connection.fetch_one("SELECT saldo FROM pessoas_juridicas WHERE id = ?", (pf_id,))
         if saldo_atual and saldo_atual[0] >= valor:
             novo_saldo = saldo_atual[0] - valor
             self.__db.execute("UPDATE pessoas_juridicas SET saldo = ? WHERE id = ?", (novo_saldo, pf_id))
