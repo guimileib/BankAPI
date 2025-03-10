@@ -3,8 +3,9 @@ import pytest
 from mock_alchemy.mocking import UnifiedAlchemyMagicMock
 from sqlalchemy.orm.exc import NoResultFound
 
-from src.models.sqlite.entities.pessoa_juridica import PessoaJuridicaTable
-from src.models.sqlite.repositories.pj_repository import PJRepository
+from src.models.sqlite.entities.pessoa_fisica import PessoaFisicaTable
+from src.models.sqlite.interfaces.pf_repository_interface import PFRepositoryInterface
+from src.models.sqlite.repositories.pf_repository import PFRepository
 
 
 class MockConnection:
@@ -12,43 +13,43 @@ class MockConnection:
         self.session = UnifiedAlchemyMagicMock(
             data=[
                 (
-                    [mock.call.query(PessoaJuridicaTable)],  # query
+                    [mock.call.query(PessoaFisicaTable)],  # query
                     [
-                        PessoaJuridicaTable(
+                        PessoaFisicaTable(
                             id=1,
-                            nome_fantasia="Empresa A",
-                            faturamento=100000.0,
-                            idade=5,
+                            nome_completo="João Silva",
+                            idade=30,
                             celular="11999999999",
-                            email_corporativo="empresa.a@email.com",
-                            categoria="MEI",
-                            saldo=5000.0
+                            email="joao@example.com",
+                            categoria="Standard",
+                            saldo=1000.0,
+                            renda_mensal=5000.0
                         ),
-                        PessoaJuridicaTable(
+                        PessoaFisicaTable(
                             id=2,
-                            nome_fantasia="Empresa B",
-                            faturamento=500000.0,
-                            idade=10,
+                            nome_completo="Maria Souza",
+                            idade=35,
                             celular="11888888888",
-                            email_corporativo="empresa.b@email.com",
-                            categoria="EPP",
-                            saldo=25000.0
+                            email="maria@example.com",
+                            categoria="Premium",
+                            saldo=2000.0,
+                            renda_mensal=7000.0
                         )
                     ]  # resultado
                 ),
                 (
-                    [mock.call.query(PessoaJuridicaTable),
-                     mock.call.filter(PessoaJuridicaTable.id == 1)],
+                    [mock.call.query(PessoaFisicaTable),
+                     mock.call.filter(PessoaFisicaTable.id == 1)],
                     [
-                        PessoaJuridicaTable(
+                        PessoaFisicaTable(
                             id=1,
-                            nome_fantasia="Empresa A",
-                            faturamento=100000.0,
-                            idade=5,
+                            nome_completo="João Silva",
+                            idade=30,
                             celular="11999999999",
-                            email_corporativo="empresa.a@email.com",
-                            categoria="MEI",
-                            saldo=5000.0
+                            email="joao@example.com",
+                            categoria="Standard",
+                            saldo=1000.0,
+                            renda_mensal=5000.0
                         )
                     ]
                 )
@@ -93,10 +94,10 @@ class MockConnectionSaldoSuficiente:
         self.session = UnifiedAlchemyMagicMock()
         
         # Para métodos que usam execução SQL direta
-        self.fetch_one = mock.MagicMock(return_value=(5000.0,))
+        self.fetch_one = mock.MagicMock(return_value=(1000.0,))
         self.fetch_all = mock.MagicMock(return_value=[
-            ("Depósito", 5000.0, "2024-03-01"),
-            ("Saque", 1000.0, "2024-03-05")
+            ("Depósito", 2000.0, "2024-03-01"),
+            ("Saque", 500.0, "2024-03-05")
         ])
         self.execute = mock.MagicMock()
 
@@ -112,7 +113,7 @@ class MockConnectionSaldoInsuficiente:
         self.session = UnifiedAlchemyMagicMock()
         
         # Para métodos que usam execução SQL direta
-        self.fetch_one = mock.MagicMock(return_value=(500.0,))
+        self.fetch_one = mock.MagicMock(return_value=(200.0,))
         self.execute = mock.MagicMock()
 
     def __enter__(self):
@@ -122,120 +123,114 @@ class MockConnectionSaldoInsuficiente:
         pass
 
 
-class TestPJRepository:
-    """Testes para PJRepository usando mock_alchemy"""
+class TestPFRepository:
+    """Testes para PFRepository usando mock_alchemy"""
 
     def test_create_success(self):
-        """Testa a criação bem-sucedida de uma pessoa jurídica"""
+        """Testa a criação bem-sucedida de uma pessoa física"""
         mock_connection = MockConnection()
-        repo = PJRepository(mock_connection)
+        repo = PFRepository(mock_connection)
         
         repo.create(
-            nome_fantasia="Empresa Teste",
-            faturamento=200000.0,
-            idade=3,
+            nome_completo="Ana Pereira",
+            idade=28,
             celular="11977777777",
-            email_corporativo="empresa.teste@email.com",
-            categoria="ME",
-            saldo=10000.0
+            email="ana@example.com",
+            categoria="Basic",
+            saldo=500.0,
+            renda_mensal=4000.0
         )
         
-        # Assert
+        # Assert's
         mock_connection.session.add.assert_called_once()
         mock_connection.session.commit.assert_called_once()
         
         # Verifica o objeto adicionado
         added_obj = mock_connection.session.add.call_args[0][0]
-        assert isinstance(added_obj, PessoaJuridicaTable)
-        assert added_obj.nome_fantasia == "Empresa Teste"
-        assert added_obj.faturamento == 200000.0
-        assert added_obj.idade == 3
+        assert isinstance(added_obj, PessoaFisicaTable)
+        assert added_obj.nome_completo == "Ana Pereira"
+        assert added_obj.idade == 28
         assert added_obj.celular == "11977777777"
-        assert added_obj.email_corporativo == "empresa.teste@email.com"
-        assert added_obj.categoria == "ME"
-        assert added_obj.saldo == 10000.0
+        assert added_obj.email == "ana@example.com"
+        assert added_obj.categoria == "Basic"
+        assert added_obj.saldo == 500.0
+        assert added_obj.renda_mensal == 4000.0
 
     def test_create_exception(self):
-        """Testa exceção ao criar uma pessoa jurídica"""
-        # Arrange
+        """Testa exceção ao criar uma pessoa física"""
         mock_connection = MockConnection()
         # Configurar o mock para lançar uma exceção no commit
         mock_connection.session.commit.side_effect = Exception("Erro ao salvar")
-        repo = PJRepository(mock_connection)
+        repo = PFRepository(mock_connection)
         
-        # Act & Assert
         with pytest.raises(Exception):
             repo.create(
-                nome_fantasia="Empresa Teste",
-                faturamento=200000.0,
-                idade=3,
+                nome_completo="Ana Pereira",
+                idade=28,
                 celular="11977777777",
-                email_corporativo="empresa.teste@email.com",
-                categoria="ME",
-                saldo=10000.0
+                email="ana@example.com",
+                categoria="Basic",
+                saldo=500.0,
+                renda_mensal=4000.0
             )
         
         mock_connection.session.rollback.assert_called_once()
 
     def test_get_success(self):
-        """Testa obtenção bem-sucedida de uma pessoa jurídica"""
-        # Arrange
+        """Testa obtenção bem-sucedida de uma pessoa física"""
         mock_connection = MockConnection()
-        repo = PJRepository(mock_connection)
+        repo = PFRepository(mock_connection)
         
-        # Act
         result = repo.get(1)
-        
-        # Assert
-        mock_connection.session.query.assert_called_with(PessoaJuridicaTable)
-        assert isinstance(result, PessoaJuridicaTable)
+
+        mock_connection.session.query.assert_called_with(PessoaFisicaTable)
+        assert isinstance(result, PessoaFisicaTable)
         assert result.id == 1
-        assert result.nome_fantasia == "Empresa A"
+        assert result.nome_completo == "João Silva"
+        assert result.idade == 30
+        assert result.celular == "11999999999"
+        assert result.email == "joao@example.com"
+        assert result.categoria == "Standard"
+        assert result.saldo == 1000.0
+        assert result.renda_mensal == 5000.0
 
     def test_get_not_found(self):
-        """Testa obtenção de uma pessoa jurídica inexistente"""
-        # Arrange
+        """Testa obtenção de uma pessoa física inexistente"""
         mock_connection = MockConnectionNoResult()
-        repo = PJRepository(mock_connection)
+        repo = PFRepository(mock_connection)
         
-        # Act
         result = repo.get(999)
         
-        # Assert
-        mock_connection.session.query.assert_called_with(PessoaJuridicaTable)
+        mock_connection.session.query.assert_called_with(PessoaFisicaTable)
         assert result is None
 
     def test_sacar_success(self):
-        """Testa saque bem-sucedido"""
-        # Arrange
         mock_connection = MockConnectionSaldoSuficiente()
-        repo = PJRepository(mock_connection)
-        # Substitui o atributo privado __db para o mock no método sacar
-        repo._PJRepository__db = mock_connection
+        repo = PFRepository(mock_connection)
+        # Corrigir referência para variável privada
+        repo._PFRepository__db = mock_connection
+
+        result = repo.sacar(1, 500.0)
         
-        # Act
-        result = repo.sacar(1, 1000.0)
-        
-        # Assert
         mock_connection.fetch_one.assert_called_once_with(
-            "SELECT saldo FROM pessoas_juridicas WHERE id = ?", 
+            "SELECT saldo FROM pessoas_fisicas WHERE id = ?", 
             (1,)
         )
         mock_connection.execute.assert_called_once_with(
-            "UPDATE pessoas_juridicas SET saldo = ? WHERE id = ?", 
-            (4000.0, 1)
+            "UPDATE pessoas_fisicas SET saldo = ? WHERE id = ?", 
+            (500.0, 1)
         )
         assert result is True
 
     def test_sacar_saldo_insuficiente(self):
         """Testa saque com saldo insuficiente"""
         mock_connection = MockConnectionSaldoInsuficiente()
-        repo = PJRepository(mock_connection)
+        repo = PFRepository(mock_connection)
         
-        result = repo.sacar(1, 1000.0)
+        result = repo.sacar(1, 500.0)
         
         mock_connection.fetch_one.assert_called_once_with(
-            "SELECT saldo FROM pessoas_juridicas WHERE id = ?", 
+            "SELECT saldo FROM pessoas_fisicas WHERE id = ?", 
             (1,)
         )
         mock_connection.execute.assert_not_called()
@@ -244,12 +239,12 @@ class TestPJRepository:
     def test_sacar_conta_inexistente(self):
         """Testa saque de conta inexistente"""
         mock_connection = MockConnectionNoResult()
-        repo = PJRepository(mock_connection)
+        repo = PFRepository(mock_connection)
         
-        result = repo.sacar(999, 1000.0)
+        result = repo.sacar(999, 500.0)
         
         mock_connection.fetch_one.assert_called_once_with(
-            "SELECT saldo FROM pessoas_juridicas WHERE id = ?", 
+            "SELECT saldo FROM pessoas_fisicas WHERE id = ?", 
             (999,)
         )
         mock_connection.execute.assert_not_called()
@@ -257,10 +252,11 @@ class TestPJRepository:
 
     def test_extrato(self):
         """Testa obtenção de extrato"""
+
         mock_connection = MockConnectionSaldoSuficiente()
-        repo = PJRepository(mock_connection)
-        # Substitui o atributo privado __db para o mock no método extrato
-        repo._PJRepository__db = mock_connection
+        repo = PFRepository(mock_connection)
+        # Corrigir referência para variável privada
+        repo._PFRepository__db = mock_connection
         
         result = repo.extrato(1)
         
@@ -270,6 +266,6 @@ class TestPJRepository:
         )
         assert len(result) == 2
         assert result[0][0] == "Depósito"
-        assert result[0][1] == 5000.0
+        assert result[0][1] == 2000.0
         assert result[1][0] == "Saque"
-        assert result[1][1] == 1000.0
+        assert result[1][1] == 500.0
