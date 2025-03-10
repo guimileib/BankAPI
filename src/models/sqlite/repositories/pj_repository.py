@@ -1,6 +1,6 @@
 from typing import Dict, List
 from sqlalchemy.orm.exc import NoResultFound
-from src.models.sqlite.entities.pessoa_juridica import PessoaJuridica
+from src.models.sqlite.entities.pessoa_juridica import PessoaJuridicaTable
 from src.models.sqlite.interfaces.pj_repository_interface import PJRepositoryInterface  
 
 class PJRepository(PJRepositoryInterface):
@@ -10,9 +10,9 @@ class PJRepository(PJRepositoryInterface):
         
     def create(self, nome_fantasia: str, faturamento: float, idade: int, celular: str, 
                   email_corporativo: str, categoria: str, saldo: float) -> None: # é um insert não retorna nada
-        with self.__db_conncetion as database:
+        with self.__db_connection as database:
             try:
-                pj_data = PessoaJuridica(
+                pj_data = PessoaJuridicaTable(
                     nome_fantasia=nome_fantasia,
                     faturamento=faturamento,
                     idade=idade,
@@ -27,13 +27,13 @@ class PJRepository(PJRepositoryInterface):
                 database.session.rollback() # desfaz operação
                 raise exception
             
-    def get(self, pj_id:int) -> PessoaJuridica:
+    def get(self, pj_id:int) -> PessoaJuridicaTable:
         with self.__db_connection as database:
             try:
                 pj = (
                     database.session
-                    .query(PessoaJuridica)
-                    .filter(PessoaJuridica.id == pj_id)
+                    .query(PessoaJuridicaTable)
+                    .filter(PessoaJuridicaTable.id == pj_id)
                     .one()
                     )
                 return pj
