@@ -40,14 +40,22 @@ class PJRepository(PJRepositoryInterface):
             except NoResultFound:
                 return None
             
-    def sacar(self, pf_id: int, valor: float) -> bool:
-        saldo_atual = self.__db_connection.fetch_one("SELECT saldo FROM pessoas_juridicas WHERE id = ?", (pf_id,))
-        if saldo_atual and saldo_atual[0] >= valor:
-            novo_saldo = saldo_atual[0] - valor
-            self.__db.execute("UPDATE pessoas_juridicas SET saldo = ? WHERE id = ?", (novo_saldo, pf_id))
-            return True
-        return False
+    def sacar(self, pj_id: int, valor: float) -> bool:
+        with self.__db_connection as database:
+            try:
+                saldo_atual = database.fetch_one("SELECT saldo FROM pessoas_juridicas WHERE id = ?", (pj_id,))
+                if saldo_atual and saldo_atual[0] >= valor:
+                    novo_saldo = saldo_atual[0] - valor
+                    database.execute("UPDATE pessoas_juridicas SET saldo = ? WHERE id = ?", (novo_saldo, pj_id))
+                    return True
+                return False
+            except Exception as exception:
+                return False
     
-    def extrato(self, pf_id: int) -> List[Dict]:
-        query = "SELECT tipo, valor, data FROM transacoes WHERE id = ? ORDER BY data DESC"
-        return self.__db.fetch_all(query, (pf_id,))
+    def extrato(self, pj_id: int) -> List[Dict]:
+        with self.__db_connection as database:
+            try:
+                query = "SELECT tipo, valor, data FROM transacoes WHERE id = ? ORDER BY data DESC"
+                return database.fetch_all(query, (pj_id,))
+            except Exception:
+                return []

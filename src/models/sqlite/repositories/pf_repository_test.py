@@ -198,7 +198,6 @@ class TestPFRepository:
     def test_sacar_success(self):
         mock_connection = MockConnectionSaldoSuficiente()
         repo = PFRepository(mock_connection)
-        repo._PFRepository__db = mock_connection
 
         result = repo.sacar(1, 500.0)
         
@@ -241,8 +240,6 @@ class TestPFRepository:
     def test_extrato(self):
         mock_connection = MockConnectionSaldoSuficiente()
         repo = PFRepository(mock_connection)
-        # Corrigir referência para variável privada
-        repo._PFRepository__db = mock_connection
         
         result = repo.extrato(1)
         
@@ -255,4 +252,3 @@ class TestPFRepository:
         assert result[0][1] == 2000.0
         assert result[1][0] == "Saque"
         assert result[1][1] == 500.0
-        

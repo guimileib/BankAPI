@@ -191,8 +191,6 @@ class TestPJRepository:
     def test_sacar_success(self):
         mock_connection = MockConnectionSaldoSuficiente()
         repo = PJRepository(mock_connection)
-        # Substitui o atributo privado __db para o mock no método sacar
-        repo._PJRepository__db = mock_connection
         
         result = repo.sacar(1, 1000.0)
         
@@ -236,8 +234,6 @@ class TestPJRepository:
     def test_extrato(self):
         mock_connection = MockConnectionSaldoSuficiente()
         repo = PJRepository(mock_connection)
-        # Substitui o atributo privado __db para o mock no método extrato
-        repo._PJRepository__db = mock_connection
         
         result = repo.extrato(1)
         
