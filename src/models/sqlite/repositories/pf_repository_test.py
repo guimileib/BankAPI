@@ -13,7 +13,7 @@ class MockConnection:
         self.session = UnifiedAlchemyMagicMock(
             data=[
                 (
-                    [mock.call.query(PessoaFisicaTable)],  # query
+                    [mock.call.query(PessoaFisicaTable)], 
                     [
                         PessoaFisicaTable(
                             id=1,
@@ -56,7 +56,6 @@ class MockConnection:
             ]
         )
         
-        # Para métodos que usam execução SQL direta
         self.fetch_one = mock.MagicMock()
         self.fetch_all = mock.MagicMock()
         self.execute = mock.MagicMock()
@@ -74,7 +73,6 @@ class MockConnectionNoResult:
         self.session.query.side_effect = self.__raise_no_result_found  # força a exceção
         self.session.rollback = mock.MagicMock()
         
-        # Para métodos que usam execução SQL direta
         self.fetch_one = mock.MagicMock(return_value=None)
         self.fetch_all = mock.MagicMock(return_value=[])
         self.execute = mock.MagicMock()
@@ -124,10 +122,7 @@ class MockConnectionSaldoInsuficiente:
 
 
 class TestPFRepository:
-    """Testes para PFRepository usando mock_alchemy"""
-
     def test_create_success(self):
-        """Testa a criação bem-sucedida de uma pessoa física"""
         mock_connection = MockConnection()
         repo = PFRepository(mock_connection)
         
@@ -141,7 +136,6 @@ class TestPFRepository:
             renda_mensal=4000.0
         )
         
-        # Assert's
         mock_connection.session.add.assert_called_once()
         mock_connection.session.commit.assert_called_once()
         
@@ -157,7 +151,6 @@ class TestPFRepository:
         assert added_obj.renda_mensal == 4000.0
 
     def test_create_exception(self):
-        """Testa exceção ao criar uma pessoa física"""
         mock_connection = MockConnection()
         # Configurar o mock para lançar uma exceção no commit
         mock_connection.session.commit.side_effect = Exception("Erro ao salvar")
@@ -177,7 +170,6 @@ class TestPFRepository:
         mock_connection.session.rollback.assert_called_once()
 
     def test_get_success(self):
-        """Testa obtenção bem-sucedida de uma pessoa física"""
         mock_connection = MockConnection()
         repo = PFRepository(mock_connection)
         
@@ -195,7 +187,6 @@ class TestPFRepository:
         assert result.renda_mensal == 5000.0
 
     def test_get_not_found(self):
-        """Testa obtenção de uma pessoa física inexistente"""
         mock_connection = MockConnectionNoResult()
         repo = PFRepository(mock_connection)
         
@@ -207,7 +198,6 @@ class TestPFRepository:
     def test_sacar_success(self):
         mock_connection = MockConnectionSaldoSuficiente()
         repo = PFRepository(mock_connection)
-        # Corrigir referência para variável privada
         repo._PFRepository__db = mock_connection
 
         result = repo.sacar(1, 500.0)
@@ -223,7 +213,6 @@ class TestPFRepository:
         assert result is True
 
     def test_sacar_saldo_insuficiente(self):
-        """Testa saque com saldo insuficiente"""
         mock_connection = MockConnectionSaldoInsuficiente()
         repo = PFRepository(mock_connection)
         
@@ -237,7 +226,6 @@ class TestPFRepository:
         assert result is False
 
     def test_sacar_conta_inexistente(self):
-        """Testa saque de conta inexistente"""
         mock_connection = MockConnectionNoResult()
         repo = PFRepository(mock_connection)
         
@@ -251,8 +239,6 @@ class TestPFRepository:
         assert result is False
 
     def test_extrato(self):
-        """Testa obtenção de extrato"""
-
         mock_connection = MockConnectionSaldoSuficiente()
         repo = PFRepository(mock_connection)
         # Corrigir referência para variável privada
@@ -269,3 +255,4 @@ class TestPFRepository:
         assert result[0][1] == 2000.0
         assert result[1][0] == "Saque"
         assert result[1][1] == 500.0
+        

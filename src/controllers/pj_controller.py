@@ -1,4 +1,5 @@
-from typing import Dict
+import datetime
+from typing import Dict, List
 import re
 from .interfaces.pj_controller_interface import PJControllerInterface
 from src.models.sqlite.entities.pessoa_juridica import PessoaJuridicaTable
@@ -58,17 +59,24 @@ class PJController(PJControllerInterface):
     
     def sacar(self, pj_id: int, valor: float) -> Dict:
         self.__withdraw_money_from_db(pj_id, valor)
-        response = self.__format_response_for_withdraw(pj_id, valor)
-        return response
+
+        transacao = {
+            "tipo": "saque",
+            "valor": valor,
+            "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        if pj_id not in self.__historico_transacoes:
+            self.__historico_transacoes[pj_id] = []
+        
+        self.__historico_transacoes[pj_id].append(transacao)
+
+        return transacao
+
+    def extrato(self, pj_id: int) -> List[Dict]:
+        return self.__historico_transacoes.get(pj_id, [])
     
     def __withdraw_money_from_db(self, pj_id: int, valor: float) -> None:
-        if not self.__pf_repository.sacar(pj_id, valor):
+        if not self.__pj_repository.sacar(pj_id, valor):
             raise ValueError("Saldo insuficiente.")
-        
-    def __format_response_for_withdraw(self, pj_id: int, valor: float) -> Dict:
-        return {
-            "data":{
-                "id": pj_id,
-                "valor_sacado": valor
-            }
-        }
+    

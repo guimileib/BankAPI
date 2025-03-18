@@ -1,4 +1,5 @@
-from typing import Dict
+import datetime
+from typing import Dict, List
 import re
 from .interfaces.pf_controller_interface import PFControllerInterface
 from src.models.sqlite.entities.pessoa_fisica import PessoaFisicaTable
@@ -57,18 +58,24 @@ class PFController(PFControllerInterface):
     
     def sacar(self, pf_id: int, valor: float) -> Dict:
         self.__withdraw_money_from_db(pf_id, valor)
-        response = self.__format_response_for_withdraw(pf_id, valor)
-        return response
+
+        transacao = {
+            "tipo": "saque",
+            "valor": valor,
+            "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        if pf_id not in self.__historico_transacoes:
+            self.__historico_transacoes[pf_id] = []
+        
+        self.__historico_transacoes[pf_id].append(transacao)
+
+        return transacao
+
+    def extrato(self, pf_id: int) -> List[Dict]:
+        return self.__historico_transacoes.get(pf_id, [])
     
     def __withdraw_money_from_db(self, pf_id: int, valor: float) -> None:
         if not self.__pf_repository.sacar(pf_id, valor):
             raise ValueError("Saldo insuficiente.")
-        
-    def __format_response_for_withdraw(self, pf_id: int, valor: float) -> Dict:
-        return {
-            "data":{
-                "id": pf_id,
-                "valor_sacado": valor
-            }
-        }
         
